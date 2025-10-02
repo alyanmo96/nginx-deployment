@@ -1,41 +1,12 @@
-name: Local nginx Deploy
+name: Deploy Nginx
 
-on:
-  push:
-    branches: [ "main" ]
+on: [push]
 
 jobs:
   deploy:
     runs-on: self-hosted
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Check Docker availability
-        run: |
-          which docker || true
-          docker version
-          docker info || (echo "Docker engine is not running" && exit 1)
-
-      - name: Show running containers (before)
-        run: docker ps -a || true
-
-      - name: Check if port 8081 is free
-        run: |
-          if lsof -i :8081; then
-            echo "Port 8081 in use"; exit 1;
-          else
-            echo "Port 8081 is free";
-          fi
-
-      - name: Build Docker image
-        run: docker build --pull -t my-nginx-app:latest .
-
-      - name: Stop old container if exists
-        run: docker rm -f my-nginx-app || true
-
-      - name: Run new container on port 8081
-        run: docker run -d --name my-nginx-app -p 8081:80 my-nginx-app:latest
-
-      - name: Show running containers (after)
-        run: docker ps
+      - uses: actions/checkout@v4
+      - run: docker build -t my-nginx-app .
+      - run: docker rm -f my-nginx-app || true
+      - run: docker run -d -p 8080:80 --name my-nginx-app my-nginx-app
