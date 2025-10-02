@@ -1,0 +1,21 @@
+name: Local Nginx Deploy (Self-Hosted)
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t my-nginx-app:latest .
+
+      - name: Stop old container (if running)
+        run: docker rm -f my-nginx-app || true
+
+      - name: Run new container
+        run: docker run -d -p 8080:80 --name my-nginx-app my-nginx-app:latest
