@@ -1,0 +1,7 @@
+actions-runner/
+externals/
+*.tar.gz
+*.zip
+*.pkg
+*.bin
+node_modules/
