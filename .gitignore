@@ -5,3 +5,7 @@ externals/
 *.pkg
 *.bin
 node_modules/
+
+actions-runner/
+*.tar.gz
+*.zip
