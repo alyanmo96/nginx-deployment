@@ -24,10 +24,10 @@ pipeline {
         }
 
         stage('Run New Container') {
-            steps {
-                echo 'Running new container...'
-                sh 'docker run -d --name nginx-local-app -p 8080:80 nginx-local-app'
-            }
+        steps {
+            echo 'Running new container...'
+            sh 'docker run -d --name nginx-local-app -p 8081:80 nginx-local-app'
+        }
         }
     }
 
