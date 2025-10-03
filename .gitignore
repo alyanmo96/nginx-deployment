@@ -1,0 +1,22 @@
+actions-runner/
+externals/
+*.tar.gz
+*.zip
+*.pkg
+*.bin
+node_modules/
+
+actions-runner/
+*.tar.gz
+*.zip
+
+# ignore local runner & big archives
+actions-runner/
+externals/
+*.tar.gz
+*.zip
+
+actions-runner/
+externals/
+*.tar.gz
+*.zip
