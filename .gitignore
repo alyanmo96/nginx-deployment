@@ -9,3 +9,9 @@ node_modules/
 actions-runner/
 *.tar.gz
 *.zip
+
+# ignore local runner & big archives
+actions-runner/
+externals/
+*.tar.gz
+*.zip
