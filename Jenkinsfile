@@ -1,42 +1,60 @@
 pipeline {
-    agent any   // run on any available agent
+  agent any
 
-    stages {
-        stage('Checkout') {
-            steps {
-                // Pull code from GitHub repo
-                checkout scm
-            }
-        }
+  triggers {
+    // Poll GitHub about every 2 minutes
+    pollSCM('H/2 * * * *')
+  }
 
-        stage('Build Docker Image') {
-            steps {
-                echo 'Building Docker image...'
-                sh 'docker build -t nginx-local-app .'
-            }
-        }
+  environment {
+    APP_NAME = 'nginx-local-app'
+    APP_PORT = '8081'
+  }
 
-        stage('Stop Old Container') {
-            steps {
-                echo 'Stopping old container if exists...'
-                sh 'docker rm -f nginx-local-app || true'
-            }
-        }
-
-        stage('Run New Container') {
-        steps {
-            echo 'Running new container...'
-            sh 'docker run -d --name nginx-local-app -p 8081:80 nginx-local-app'
-        }
-        }
+  stages {
+    stage('Checkout') {
+      steps { checkout scm }
     }
 
-    post {
-        success {
-            echo 'Deployment successful!'
-        }
-        failure {
-            echo 'Deployment failed!'
-        }
+    stage('Build Docker Image') {
+      steps {
+        echo 'Building Docker image...'
+        sh "docker build -t ${APP_NAME} ."
+      }
     }
+
+    stage('Stop Old Container') {
+      steps {
+        echo 'Stopping old container if exists...'
+        sh "docker rm -f ${APP_NAME} || true"
+      }
+    }
+
+    stage('Run New Container') {
+      steps {
+        echo 'Running new container...'
+        sh "docker run -d --name ${APP_NAME} -p ${APP_PORT}:80 ${APP_NAME}"
+      }
+    }
+
+    stage('Test (health-check)') {
+      steps {
+        echo 'Checking http://localhost:' + APP_PORT
+        sh """
+          for i in {1..10}; do
+            curl -s -o /dev/null -w "%{http_code}" http://localhost:${APP_PORT} | grep -q '^200$' && exit 0
+            echo 'Waiting for app...'; sleep 1
+          done
+          echo 'Health-check failed'; exit 1
+        """
+      }
+    }
+  }
+
+  post {
+    success { echo 'Deployment successful!' }
+    failure {
+      echo 'Deployment failed!'
+    }
+  }
 }
