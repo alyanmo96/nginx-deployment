@@ -2,7 +2,6 @@ pipeline {
   agent any
 
   triggers {
-    // Poll GitHub about every 2 minutes
     pollSCM('H/2 * * * *')
   }
 
@@ -39,14 +38,20 @@ pipeline {
 
     stage('Test (health-check)') {
       steps {
-        echo 'Checking http://localhost:' + APP_PORT
-        sh """
-          for i in {1..10}; do
-            curl -s -o /dev/null -w "%{http_code}" http://localhost:${APP_PORT} | grep -q '^200$' && exit 0
-            echo 'Waiting for app...'; sleep 1
+        echo "Health check on http://localhost:${APP_PORT}"
+        // Use single-quoted triple quotes so Groovy doesn't treat $ as interpolation
+        sh '''
+          for i in {1..15}; do
+            code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:$APP_PORT || true)
+            if [ "$code" = "200" ]; then
+              echo "OK (HTTP 200)";
+              exit 0
+            fi
+            echo "Waiting for app... ($i)"; sleep 1
           done
-          echo 'Health-check failed'; exit 1
-        """
+          echo "Health-check failed"
+          exit 1
+        '''
       }
     }
   }
@@ -54,7 +59,8 @@ pipeline {
   post {
     success { echo 'Deployment successful!' }
     failure {
-      echo 'Deployment failed!'
+      echo 'Deployment failed! Showing logs (if any)...'
+      sh "docker logs ${APP_NAME} || true"
     }
   }
 }
