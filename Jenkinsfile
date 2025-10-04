@@ -37,22 +37,21 @@ pipeline {
     }
 
     stage('Test (health-check)') {
-      steps {
-        echo "Health check on http://localhost:${APP_PORT}"
-        // Use single-quoted triple quotes so Groovy doesn't treat $ as interpolation
+    steps {
+        echo "Health check on http://host.docker.internal:${APP_PORT}"
         sh '''
-          for i in {1..15}; do
-            code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:$APP_PORT || true)
+        for i in $(seq 1 15); do
+            code=$(curl -s -o /dev/null -w "%{http_code}" http://host.docker.internal:$APP_PORT || true)
             if [ "$code" = "200" ]; then
-              echo "OK (HTTP 200)";
-              exit 0
+            echo "OK (HTTP 200)";
+            exit 0
             fi
             echo "Waiting for app... ($i)"; sleep 1
-          done
-          echo "Health-check failed"
-          exit 1
+        done
+        echo "Health-check failed"
+        exit 1
         '''
-      }
+    }
     }
   }
 
